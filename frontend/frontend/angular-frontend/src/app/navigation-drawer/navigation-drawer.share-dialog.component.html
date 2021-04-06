@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>Share Project</h2>
+The project is currently shared with these users:
+<div class="user-list">
+  <mat-action-list class="contributorsList">
+      <mat-list-item *ngFor="let contributor of data.contributors">
+          {{ contributor }}
+       </mat-list-item>
+  </mat-action-list>
+</div>
+<mat-form-field>
+    <mat-label>Gitlab Username</mat-label>
+    <input matInput type="text" [(ngModel)]="data.name">
+    <button mat-button *ngIf="data.name" matSuffix mat-icon-button aria-label="Clear" (click)="data.name=''">
+      <mat-icon>close</mat-icon>
+    </button>
+</mat-form-field>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button [mat-dialog-close]="data.name" cdkFocusInitial>Share</button>
+</mat-dialog-actions>

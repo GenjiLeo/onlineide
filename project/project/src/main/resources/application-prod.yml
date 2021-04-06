@@ -1,0 +1,19 @@
+# Spring Datasource (DataSourceAutoConfiguration & DataSourceProperties)
+spring.datasource.url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/my_db}
+spring.datasource.username: ${DATABASE_USER:admin}
+spring.datasource.password: ${DATABSASE_PASSWORD:test}
+# Specifying the SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+security:
+  oauth2:
+    client:
+      clientId: 8d8383498b1232903366c884ae204393c32eaa1fb24cce6c7cbddb35a7ca3cc1
+      clientSecret: 64cb971fe857096fb89d09d48258e2dfb42df5e369923efdd7f15fb7607932b2
+      accessTokenUri: https://gitlab.lrz.de/oauth/token
+      userAuthorizationUri: https://gitlab.lrz.de/oauth/authorize
+      scope:
+        - read_user
+        - api
+    resource:
+      userInfoUri: https://gitlab.lrz.de/api/v4/user

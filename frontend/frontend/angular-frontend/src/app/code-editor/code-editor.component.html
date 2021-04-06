@@ -1,0 +1,31 @@
+<div class="text-editor-header">
+    <button mat-raised-button color="basic" disabled="{{parent.editorDisabled}}" (click)=saveFile()>
+        <mat-icon>
+            save
+        </mat-icon>
+        Save
+    </button>
+    <button mat-raised-button color="primary" disabled="{{parent.compileDisabled || parent.editorDisabled}}" (click)=compileFile()>
+        <mat-icon>
+            construction
+        </mat-icon>
+        Compile
+    </button>
+    <button mat-raised-button color="warn" disabled="{{parent.editorDisabled}}" (click)=deleteFile()>
+        <mat-icon>
+            delete
+        </mat-icon>
+        Delete
+    </button>
+    <button mat-raised-button color="basic" disabled="{{parent.editorDisabled}}" (click)=openEditFileNameDialog()>
+        <mat-icon>
+            edit
+        </mat-icon>
+        Rename
+    </button>
+    <span class="mat-title filename">{{ parent.projectName }} / {{ parent.sourceFile.name }}</span>
+
+</div>
+<div style="height: 80%" id="editor">
+    <ngx-monaco-editor [options]="parent.editorOptions" [(ngModel)]="parent.sourceFile.content" (ngModelChange)="codeChanged()" style="height: 100%;"></ngx-monaco-editor>
+</div>

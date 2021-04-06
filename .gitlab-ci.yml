@@ -1,0 +1,328 @@
+# Required for maven builds and packages
+# JDK 11 works for all micro services
+image: maven:3-openjdk-11
+
+cache:
+  paths:
+    # Keep the maven repository between stages so that we do not need to
+    # download the dependencies every time
+    - .m2/repository
+
+variables:
+  #$CI_PROJECT_DIR set by gitlab automatically
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+before_script:
+  - cd $CI_PROJECT_DIR
+
+after_script:
+  - cd $CI_PROJECT_DIR
+
+
+stages:
+  - build
+  - test
+  - package
+  - publish
+  - deploy
+  
+# compiler service
+compiler:build:
+  stage: build
+  # Build the application
+  script: cd compiler/compiler && mvn clean compile
+  # Only run this stage when there is a change in that folder
+  only:
+    changes:
+      - compiler/**/*
+  
+compiler:test:
+  stage: test
+  # Test the application
+  script:
+    # Install gcc in the specified version (4:8.3.0-1) non-interactively
+    # We need this specific version because GCCs cmdline output changed slightly
+    # in GCC 9 which makes our test fail
+    # The export just tells APT to not bother with any interactivity
+    - export DEBIAN_FRONTEND=noninteractive
+    # -yq to say yes and install quietly
+    - apt-get update && apt-get -yq install gcc=4:8.3.0-1
+    # Remove the APT cache, not strictly required but does not hurt, either
+    # Although it means that `apt update` has to be run again before another
+    # package can be installed
+    - rm -rf /var/lib/apt/lists/*
+    - cd compiler/compiler && mvn test
+  only:
+    changes:
+      - compiler/**/*
+  
+compiler:package:
+  stage: package
+  # Package the application
+  script: cd compiler/compiler && mvn package -Dmaven.test.skip=true
+  artifacts:
+    # save files for later stages and also make them available for download
+    # from the CI web interface
+    paths:
+      - compiler/compiler/target/*.jar
+  only:
+    changes:
+      - compiler/**/*
+
+compiler:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    # Run docker-in-docker (docker client in a docker container); we need a
+    # docker client to pull / build / push the images
+    - docker:18-dind
+  script:
+    # Login to docker and pull latest version
+    - cd compiler/compiler
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    # Connect to the docker daemon on the host
+    # the container has to run privileged for this to work
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/compiler
+  only:
+    changes:
+      - compiler/**/*
+
+# dark-mode service
+dark-mode:build:
+  stage: build
+  # Build the application
+  script: cd dark-mode/darkmode && mvn clean compile
+  only:
+    changes:
+      - dark-mode/**/*
+  
+dark-mode:package:
+  stage: package
+  # Package the application
+  script: cd dark-mode/darkmode && mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - dark-mode/darkmode/target/*.jar
+  only:
+    changes:
+      - dark-mode/**/*
+
+dark-mode:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - docker:18-dind
+  script:
+    - cd dark-mode/darkmode
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/dark-mode
+  only:
+    changes:
+      - dark-mode/**/*
+
+# eureka
+eureka:build:
+  stage: build
+  # Build the application
+  script: cd eureka && mvn clean compile
+  only:
+    changes:
+      - eureka/**/*
+  
+eureka:package:
+  stage: package
+  # Package the application
+  script: cd eureka && mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - eureka/target/*.jar
+  only:
+    changes:
+      - eureka/**/*
+
+eureka:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - docker:18-dind
+  script:
+    - cd eureka
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/eureka
+  only:
+    changes:
+      - eureka/**/*
+
+# frontend service
+frontend:build:
+  # node image
+  image: node:12.20.1-alpine3.10
+  stage: build
+  # Build the application
+  script:
+    # Install the angular CLI and build the frontend
+    - cd frontend/frontend/angular-frontend/src/
+    - npm install --global @angular/cli
+    - npm install
+    - ng build --base-href=/ui/
+  artifacts:
+    paths:
+      # save the built angular frontend for later stages
+      - frontend/frontend/src/main/resources/
+  only:
+    changes:
+      - frontend/**/*
+  
+frontend:package:
+  stage: package
+  # Package the application
+  script: cd frontend/frontend && mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - frontend/frontend/target/*.jar
+  only:
+    changes:
+      - frontend/**/*
+
+frontend:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - docker:18-dind
+  script:
+    - cd frontend/frontend
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/frontend
+  only:
+    changes:
+      - frontend/**/*
+
+# gateway service
+gateway:build:
+  stage: build
+  # Build the application
+  script: cd gateway && mvn clean compile
+  only:
+    changes:
+      - gateway/**/*
+  
+gateway:package:
+  stage: package
+  # Package the application
+  script: cd gateway && mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - gateway/target/*.jar
+  only:
+    changes:
+      - gateway/**/*
+
+gateway:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - docker:18-dind
+  script:
+    - cd gateway
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/gateway
+  only:
+    changes:
+      - gateway/**/*
+
+# project service
+project:build:
+  stage: build
+  # Build the application
+  script: cd project/project && mvn clean compile
+  only:
+    changes:
+      - project/**/*
+
+project:package:
+  stage: package
+  # Package the application
+  # Since we skip the tests we do not need to worry about providing a database
+  # here; even if we had tests it should default to using H2 anyway
+  script: cd project/project && mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - project/project/target/*.jar
+  only:
+    changes:
+      - project/**/*
+
+project:publish:
+  stage: publish
+  image: docker:stable
+  services:
+    - docker:18-dind
+  script:
+    - cd project/project
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $IMAGE_NAME:latest || true
+    - docker build --tag $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/project
+  only:
+    changes:
+      - project/**/*
+
+
+deploy:gcp:
+  stage: deploy
+  # We just need some image that we can use as the SSH client
+  image: ubuntu:18.04
+  script:
+    # Install ssh-agent if not already installed, required by docker
+    # We can then add the SSH private key to the agent to use in SCP and SSH
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    # Create SSH dir with right permissions
+    - mkdir -p ~/.ssh 
+    - chmod 700 ~/.ssh
+    # Add SSH key stored in SSH_PRIVATE_KEY to agent store
+    # also get rid of Windows line endings if there are any
+    # (\r\n -> \n)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    # Disable Strict host key checking otherwise we would get an interactive
+    # request to confirm the host key. This is not the most secure thing to do
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    # Copy over the docker-compose.prod.yml in case it changed
+    - scp -r docker-compose.prod.yml $SSH_HOST:~/
+    # Pull updated containers and restart all containers
+    - ssh $SSH_HOST "sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh $SSH_HOST "sudo docker-compose -f docker-compose.prod.yml pull && sudo docker-compose -f docker-compose.prod.yml up --force-recreate -d"

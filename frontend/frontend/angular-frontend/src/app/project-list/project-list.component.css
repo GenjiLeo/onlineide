@@ -1,0 +1,19 @@
+table {
+  width: 80%;
+}
+
+.logout-button {
+  margin: 5px;
+}
+
+.add-project {
+  margin: 5px;
+}
+
+.add-project button {
+  margin: 10px;
+}
+
+.project-list-table button {
+  margin: 5px;
+}

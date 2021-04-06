@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: gateway-service
+eureka:
+  client:
+    serviceUrl:
+      # Register as a Eureka client
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka}
+server:
+  port: ${PORT:8000}
+# Values for the load balancer so that it does not time out during the startup
+zuul.host.socket-timeout-millis: 20000
+zuul.host.connect-timeout-millis: 20000
+ribbon.ConnectTimeout: 10000
+ribbon.ReadTimeout: 10000
+# Metadata for GitLab authentication
+security:
+  oauth2:
+    client:
+      clientId: 6c9c7d931084d09c4c34f03a85eb77134633ab532a0518e535b66e862ab5bb5b
+      clientSecret: 49e9166c5867ed19f2f6f80c330683e1d5a985ad085b99e161eb046e86b37174
+      # URLs to the Gitlab authentication endpoints we need
+      accessTokenUri: https://gitlab.lrz.de/oauth/token
+      userAuthorizationUri: https://gitlab.lrz.de/oauth/authorize
+      scope:
+        - read_user
+        - api
+    resource:
+      # URL to get user details from Gitlab
+      userInfoUri: https://gitlab.lrz.de/api/v4/user
+# Gateway routing
+zuul:
+  ignored-services: "*"
+  routes:
+    project-service:
+      path: "/project/**"
+      service-id: project-service
+      strip-prefix: false
+      # Needed for access control / authorization in the project service
+      sensitive-headers: Cookie,Set-Cookie
+    ui-service:
+      path: "/ui/**"
+      service-id: frontend-service
+      strip-prefix: false
+    compiler-service:
+      path: "/compile/**"
+      service-id: compiler-service
+      strip-prefix: false
+    darkmode-service:
+      path: "/dark-mode/**"
+      service-id: darkmode-service
+      strip-prefix: false
+
+proxy:
+  auth:
+    routes:
+      # OAUTH token relay
+      project-service: oauth2

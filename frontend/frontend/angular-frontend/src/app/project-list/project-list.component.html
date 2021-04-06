@@ -1,0 +1,36 @@
+<h1>Project Management</h1>
+<button mat-raised-button color="basic" aria-label="Logout" (click)=authService.logout() class="logout-button">
+    <mat-icon>
+        exit_to_app
+    </mat-icon>
+    Logout
+</button>
+<table mat-table [dataSource]="projectsDataSource" class="mat-elevation-z8 project-list-table">
+    <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let project">{{project.name}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let project">
+            <button mat-raised-button color="primary" (click)=selectedProject(project)>Open</button>
+            <button mat-raised-button color="basic" (click)=editProject(project)>Edit</button>
+            <button mat-raised-button color="warn" (click)=deleteProject(project)>Delete</button>
+        </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+
+<div class="add-project">
+    <mat-form-field>
+        <mat-label>Project name</mat-label>
+        <input matInput type="text" [(ngModel)]="projectName">
+        <button mat-button *ngIf="projectName" matSuffix mat-icon-button aria-label="Clear" (click)="projectName=''">
+        <mat-icon>close</mat-icon>
+        </button>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="addProject()">Add Project</button>
+</div>

@@ -1,0 +1,25 @@
+# Hibernate ddl auto (create, create-drop, validate, update)
+# `ddl-auto` property is used to automatically create the tables based on the entity classes
+spring.jpa.hibernate.ddl-auto: update
+# fixes Hibernate issue: https://github.com/spring-projects/spring-boot/issues/12007
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation: true
+# Set prod profile
+spring:
+  profiles:
+    active: ${APPLICATION_PROFILE:dev}
+  application:
+    name: project-service
+  datasource:
+    hikari:
+      # Enable Lob type
+      auto-commit: false
+
+# Set server port explicitly
+server:
+  port: 8080
+
+eureka:
+  client:
+    serviceUrl:
+      # Get URL from environment variable or default to localhost
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka}

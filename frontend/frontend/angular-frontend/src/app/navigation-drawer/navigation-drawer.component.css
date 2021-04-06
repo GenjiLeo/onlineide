@@ -1,0 +1,30 @@
+.navigation-drawer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #eee;
+  }
+
+.navigation-drawer-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav-drawer {
+  width: 10%;
+}
+
+.sidenav-content {
+  overflow: hidden;
+  width: 90%;
+}
+
+.navigation-drawer-content button {
+  margin: 5px;
+}
+
+.sourceFileList button{
+  width: 100%;
+}

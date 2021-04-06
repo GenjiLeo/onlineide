@@ -1,0 +1,9 @@
+.text-editor-header button {
+    width: 120px;
+    margin: 5px;
+}
+
+.filename {
+    padding-left: 30px;
+    padding-right: 30px;
+}

@@ -1,0 +1,67 @@
+# Pull images from the Gitlab registry and run them
+
+version: '3.5'
+services:
+    eureka:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/eureka
+        restart: unless-stopped
+    project:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/project
+        restart: unless-stopped
+        environment:
+            - DATABASE_URL=jdbc:postgresql://db:5432/project_db?user=project_user&password=project_password
+            - APPLICATION_PROFILE=prod
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - db
+            - eureka
+    db:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_DB=project_db
+            - POSTGRES_USER=project_user
+            - POSTGRES_PASSWORD=project_password
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+    compiler:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/compiler
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+        # Create three compiler services to showcase load balancing between
+        # services (The gateway uses round-robin by default)
+        deploy:
+            replicas: 3
+    frontend:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/frontend
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+    dark-mode:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/dark-mode
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+    gateway:
+        image: gitlab.lrz.de:5005/ase20-group2-2/onlineide/gateway
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        ports:
+            - 80:8000/tcp
+        depends_on:
+            - eureka
+            - project
+            - frontend
+            - compiler
+            - dark-mode
+
+volumes:
+    postgres_data:

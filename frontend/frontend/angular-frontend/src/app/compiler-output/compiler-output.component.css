@@ -1,0 +1,7 @@
+.compiler-output {
+    margin: 5px;
+    overflow: scroll;
+    display: block;
+    white-space: pre-wrap;
+    height: 14%;
+}

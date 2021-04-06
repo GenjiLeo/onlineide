@@ -1,0 +1,73 @@
+# As opposed to the dockier-compose.prod.yml this file does not pull the images
+# from the registry but instead tries to build them directly using the
+# Dockerfiles in the respective directories; this is set by the "build"
+# directive
+# To force a rebuild use docker-compose build [--no-cache]
+
+version: '3.5'
+services:
+    eureka:
+        build: eureka
+        image: eureka:latest
+        restart: unless-stopped
+    project:
+        build: project/project
+        image: project:latest
+        restart: unless-stopped
+        environment:
+            - DATABASE_URL=jdbc:postgresql://db:5432/project_db?user=project_user&password=project_password
+            - APPLICATION_PROFILE=prod
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - db
+            - eureka
+    db:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_DB=project_db
+            - POSTGRES_USER=project_user
+            - POSTGRES_PASSWORD=project_password
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+    compiler:
+        build: compiler/compiler
+        image: compiler:latest
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+    frontend:
+        build: frontend/frontend
+        image: frontend:latest
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+    dark-mode:
+        build: dark-mode/darkmode
+        image: dark-mode:latest
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        depends_on:
+            - eureka
+    gateway:
+        build: gateway
+        image: gateway:latest
+        restart: unless-stopped
+        environment:
+            - EUREKA_SERVER=http://eureka:8761/eureka
+        ports:
+            - 80:8000/tcp
+        depends_on:
+            - eureka
+            - project
+            - frontend
+            - compiler
+            - dark-mode
+
+volumes:
+    postgres_data:
