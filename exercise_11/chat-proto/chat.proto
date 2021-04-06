@@ -1,0 +1,29 @@
+syntax = "proto3";
+// protoc chat.proto --java_out=.
+// ASE Exercise 11 `chat.proto`
+// TODO: Add message types and RPC services for distributed chat system below
+// compile using protoc 
+package edu.tum.ase.chat;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/Empty.proto";
+
+
+
+message ChatMessage{
+    string content = 1;
+    string sender = 2; // name
+}
+
+message ChatMessageResponse {
+    string content = 1;
+    string sender = 2;
+    uint32 id = 3;
+    google.protobuf.Timestamp createdAt= 4;
+}
+
+
+service ChatService {
+    rpc SendMessage(ChatMessage) returns(google.protobuf.Empty) {}
+    rpc StreamMessages(google.protobuf.Empty) returns (stream ChatMessageResponse) {}
+}

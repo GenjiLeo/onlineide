@@ -1,0 +1,12 @@
+security:
+  oauth2:
+    client:
+      clientId: ${OAUTH_CLIENT_ID:some-client-id} # TODO: add client id
+      clientSecret: ${OAUTH_CLIENT_SECRET:some-client-secret} # TODO: add client secret
+      accessTokenUri: https://gitlab.lrz.de/oauth/token
+      userAuthorizationUri: https://gitlab.lrz.de/oauth/authorize
+      scope:
+        - read_user
+        - api
+    resource:
+      userInfoUri: https://gitlab.lrz.de/api/v4/user

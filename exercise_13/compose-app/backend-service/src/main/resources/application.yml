@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: backend-service
+  datasource:
+    url: ${JDBC_URL:} # no default here, this can only set through environment variable
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:test}
+    name: ${POSTGRES_DB:my_db}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        # Specifying the SQL dialect makes Hibernate generate better SQL for the chosen database
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # `ddl-auto` property is used to automatically create the tables based on the entity classes
+        ddl-auto: create
+        # fixes Hibernate issue: https://github.com/spring-projects/spring-boot/issues/12007
+        jdbc.lob.non_contextual_creation: true
+    generate-ddl: true
+server:
+  port: ${PORT:8081}
+database.port: ${DB_PORT:5432}

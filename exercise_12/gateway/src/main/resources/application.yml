@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: gateway-service
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka}
+server:
+  port: ${PORT:8000}
+
+# occasionally zuul and registry fail to connect properly
+# larger Time To fail
+zuul.host.socket-timeout-millis: 20000
+zuul.host.connect-timeout-millis: 20000
+ribbon.ConnectTimeout: 10000
+ribbon.ReadTimeout: 10000
+
+
+zuul:
+  # ignore all services, we define which ones we want
+  ignored-services: "*"
+  routes:
+    project-service:
+      path: "/project/**"
+      service-id: backend-service
+      # still send first fragment of url
+      strip-prefix: false
+    ui-service:
+      path: "/ui/**"
+      service-id: frontend-service
+      strip-prefix: false

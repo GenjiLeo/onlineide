@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: headerFragment">
+    <title>Create Project</title>
+</head>
+<body>
+<div class="container">
+    <h1>Create Project</h1>
+    <form action="#" th:action="@{/create}" th:object="${project}" method="post">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" th:field="*{name}" id="name" placeholder="Name">
+            <div class="invalid-feedback">
+                <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></span>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+</div>
+</body>
+</html>

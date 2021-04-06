@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: discovery-service
+server:
+  port: ${PORT:8761}
+eureka:
+  client:
+    # will services register automatically?
+    # services need to register themselves
+    register-with-eureka: false
+    fetch-registry: false

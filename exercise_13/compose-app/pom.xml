@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>edu.tum.ase</groupId>
+    <artifactId>compose-app</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>compose-app</name>
+    <description>Simple project management</description>
+    <modules>
+        <module>backend-service</module>
+        <module>frontend-service</module>
+    </modules>
+    <packaging>pom</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compielr.target>1.8</maven.compielr.target>
+    </properties>
+
+
+
+
+
+</project>

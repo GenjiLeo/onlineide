@@ -1,0 +1,14 @@
+SQL Injection:   Login User:    ' OR 1=1;
+
+Obtain a copy of member list:
+  change url  /get_file.php?file=../db/flag.db
+  downloads file
+
+Remove all files stored on mosfilesley
+    - upload php script via file uploader
+    - execute any script you want 
+    - open shell session via script
+
+Find a way to log the username and session ID of everyone on the website
+    Add js script in text area
+    Add php script that is similar to logger.php

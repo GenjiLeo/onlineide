@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: frontend-service
+server:
+  port: ${PORT:8080}
+  #required to make all /ui requests go here
+  servlet:
+    context-path: /ui
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka}

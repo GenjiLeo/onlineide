@@ -1,0 +1,23 @@
+image: maven:3.3.9-jdk-8
+
+#Define stages
+stages:
+  - build
+  - test
+  - package
+
+#jobs run sequentially
+build:
+  stage: build
+  script: mvn clean compile
+# reuse artifacts generated during build, no clean
+test:
+  stage: test
+  script: mvn test
+# skip tests as they have already been done
+# using env variable
+package:
+  stage: package
+  script: mvn package
+  variables:
+    MAVEN_OPTS: "-DskipTest=true"
